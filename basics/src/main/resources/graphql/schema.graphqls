@@ -1,0 +1,30 @@
+type Query {
+    customers: [Customer]
+    employees: [Employee]
+    employeeById(id: ID): Employee
+}
+
+type Customer {
+
+    id: ID!
+    name : String
+    email : String
+
+}
+
+type Employee {
+    id: ID!
+    name: String
+    # restricted
+    salary: String
+}
+
+#input UpdateSalaryInput {
+#    employeeId: ID!
+#    salary: String!
+#}
+#
+#type UpdateSalaryPayload {
+#    success: Boolean!
+#    employee: Employee
+#}

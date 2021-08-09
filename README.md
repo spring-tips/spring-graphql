@@ -219,3 +219,4 @@ That said there is room for code generation too, to get started, for clients to 
 * Why [Github uses GraphQL](https://docs.github.com/en/graphql/overview/about-the-graphql-api)
 * [Introducing Spring GraphQL](https://spring.io/blog/2021/07/06/introducing-spring-graphql)
 * the [Spring GraphQL reference documentation](https://docs.spring.io/spring-graphql/docs/1.0.0-SNAPSHOT/reference/html/)
+* [the SpaceX GraphQL API](https://api.spacex.land/graphql/)
