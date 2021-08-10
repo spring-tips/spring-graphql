@@ -1,7 +1,5 @@
 type Query {
-    customer : Customer
-    employees: [Employee]
-    employeeById(id: ID): Employee
+    customerById(id: ID): Customer
 }
 
 type Subscription {
@@ -16,19 +14,3 @@ type Customer {
 
 }
 
-type Employee {
-    id: ID!
-    name: String
-    # restricted
-    salary: String
-}
-
-#input UpdateSalaryInput {
-#    employeeId: ID!
-#    salary: String!
-#}
-#
-#type UpdateSalaryPayload {
-#    success: Boolean!
-#    employee: Employee
-#}

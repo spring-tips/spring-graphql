@@ -14,9 +14,9 @@
 
         // query
         client.subscribe(
-            {query: '{ customer { id, name } }'},
+            {query: '{ customerById(id : 2) { id, name } }'},
             {
-                next: (data) => console.log('next: ', data['data']['customer']),
+                next: (data) => console.log('next: ', data['data']['customerById']),
                 error: (err) => console.error('got an error', err),
                 complete: () => console.log('complete...'),
             }
