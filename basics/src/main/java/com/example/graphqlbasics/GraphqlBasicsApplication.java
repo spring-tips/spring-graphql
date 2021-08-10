@@ -42,11 +42,8 @@ public class GraphqlBasicsApplication {
 
             builder
                     .type("Query", wiring -> wiring
-                            .dataFetcher("customerById", env -> {
-                                var id = Integer.parseInt(env.getArgument("id"));
-                                return customerService.getCustomerById(id);
-                            })
-                    );
+                            .dataFetcher("customerById",
+                                    env -> customerService.getCustomerById(Integer.parseInt(env.getArgument("id")))));
 
         };
     }
