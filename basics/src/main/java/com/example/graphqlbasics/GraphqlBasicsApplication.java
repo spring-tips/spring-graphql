@@ -44,11 +44,6 @@ class EmployeeDataWiringManager implements RuntimeWiringConfigurer {
         this.om = om;
     }
 
-    @SneakyThrows
-    private String json(Object o) {
-        return om.writeValueAsString(o);
-    }
-
     @Override
     public void configure(RuntimeWiring.Builder builder) {
 
@@ -63,6 +58,11 @@ class EmployeeDataWiringManager implements RuntimeWiringConfigurer {
                             return customerService.getCustomerById(id);
                         })
                 );
+    }
+
+    @SneakyThrows
+    private String json(Object o) {
+        return om.writeValueAsString(o);
     }
 
 
