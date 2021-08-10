@@ -1,7 +1,11 @@
 type Query {
-    customers: [Customer]
+    customer : Customer
     employees: [Employee]
     employeeById(id: ID): Employee
+}
+
+type Subscription {
+    customers: String
 }
 
 type Customer {

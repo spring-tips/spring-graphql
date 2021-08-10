@@ -1,16 +1,21 @@
 package com.example.graphqlbasics;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.idl.RuntimeWiring;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.graphql.boot.RuntimeWiringBuilderCustomizer;
+import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,43 +31,61 @@ public class GraphqlBasicsApplication {
 
 }
 
+@Log4j2
 @Component
-class EmployeeDataWiringManager implements RuntimeWiringBuilderCustomizer {
+class EmployeeDataWiringManager
+        implements RuntimeWiringConfigurer {
 
     private final EmployeeService employeeService;
+
     private final CustomerService customerService;
+    private final ObjectMapper om ;
 
     EmployeeDataWiringManager(
             EmployeeService employeeService,
-            CustomerService customerService) {
+            CustomerService customerService, ObjectMapper om) {
         this.employeeService = employeeService;
         this.customerService = customerService;
+        this.om = om;
+    }
+
+
+    private static Flux<Customer> getGreetingsStream() {
+        var id = new AtomicInteger();
+        return Flux
+                .just("Hi", "Bonjour", "Hola", "Ciao", "Zdravo")
+                .map(name -> new Customer(id.incrementAndGet(), name))
+                .delayElements(Duration.ofSeconds(1));
+    }
+
+    private static String from(Object o, ObjectMapper om) {
+        try {
+            return om.writeValueAsString(o);
+        } catch (JsonProcessingException e) {
+            ReflectionUtils.rethrowRuntimeException(e);
+        }
+        return null ;
     }
 
     @Override
-    public void customize(RuntimeWiring.Builder builder) {
+    public void configure(
+            RuntimeWiring.Builder builder) {
 
-
-        // todo figure out how to handle a mutation
-        // todo figure out how to handle a query
-        // todo figure out security
-
+        builder
+                .type("Subscription", wiring -> wiring.dataFetcher("customers",
+                        env -> getGreetingsStream()
+                                .map(c -> from(c, om))
+                ));
 
         builder
                 .type("Query",
                         wiring -> wiring
-                                .dataFetcher("customers", environment -> {
-                                    Map<String, Object> arguments = environment.getArguments();
-                                    arguments.forEach((k, v) -> System.out.println(k + '=' + v));
-                                    return customerService.getCustomers();
+                                .dataFetcher("customer", env -> customerService.get())
+                                .dataFetcher("employeeById", env -> {
+                                    var id = Integer.parseInt(env.getArgument("id"));
+                                    return employeeService.getEmployeesById(id).getName();
                                 })
-                                .dataFetcher("employeeById", e -> {
-                                    var id = (Integer) e.getArgument("id");
-                                    return employeeService.getEmployeesById( (id));
-                                })
-                                .dataFetcher("employees",
-                                        env -> employeeService.getEmployees()));
-
+                                .dataFetcher("employees", env -> employeeService.getEmployees()));
 
     }
 }
@@ -78,6 +101,9 @@ class CustomerService {
         return this.customers;
     }
 
+    Customer get() {
+        return this.customers.iterator().next();
+    }
 }
 
 @Data
