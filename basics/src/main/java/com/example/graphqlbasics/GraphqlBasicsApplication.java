@@ -20,6 +20,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+/**
+ * @author Josh Long
+ */
 @SpringBootApplication
 public class GraphqlBasicsApplication {
 
@@ -60,7 +63,6 @@ class EmployeeDataWiringManager implements RuntimeWiringConfigurer {
                             return customerService.getCustomerById(id);
                         })
                 );
-
     }
 
 
@@ -88,10 +90,7 @@ class CustomerService {
     Flux<Customer> getCustomers() {
         return Flux.fromIterable(this.customers);
     }
-
-
 }
-
 
 @Data
 @AllArgsConstructor
