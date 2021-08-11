@@ -5,12 +5,12 @@ type Query {
 
 type Subscription {
     customers: String
-    stockUpdates(name :String) : StockUpdate
+    customerUpdates(id:ID): CustomerUpdate
 }
 
-type StockUpdate {
- price : Float
- name : String
+type CustomerUpdate {
+ customer: Customer!
+ event: String
 }
 
 type Customer {

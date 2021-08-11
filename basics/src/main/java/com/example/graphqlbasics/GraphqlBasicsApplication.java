@@ -1,10 +1,9 @@
 package com.example.graphqlbasics;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import graphql.schema.DataFetchingEnvironment;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,8 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,45 +28,24 @@ public class GraphqlBasicsApplication {
     }
 
     @Bean
-    RuntimeWiringConfigurer runtimeWiringConfigurer(CustomerService customerService, ObjectMapper objectMapper) {
+    RuntimeWiringConfigurer runtimeWiringConfigurer(CustomerService customerService) {
         return builder -> {
 
             builder
-                    .type("Customer", w -> w
-                            .dataFetcher("profile", e -> {
-                                Thread.sleep(1000);
-                                System.out.println("running on " + Thread.currentThread().getName());
-                                return new CustomerProfile((int) (Math.random() * 1000));
-                            }));
-
+                    .type("Customer", wiring -> wiring
+                            .dataFetcher("profile", env -> customerService.getCustomerProfileFor(getId(env))));
             builder
                     .type("Subscription", wiring -> wiring
-                            .dataFetcher("stockUpdates", env -> updatesFor(env.getArgument("name")))
-                            .dataFetcher("customers", env ->
-                                    customerService.getCustomers()
-                                            .delayElements(Duration.ofSeconds(1))
-                                            .map(x -> json(objectMapper, x))));
-
+                            .dataFetcher("customerUpdates", env -> customerService.getCustomerUpdatesStreamFor(getId(env))));
             builder
                     .type("Query", wiring -> wiring
-                            .dataFetcher("customers", args -> customerService.getCustomers())
-                            .dataFetcher("customerById",
-                                    args -> customerService.getCustomerById(Integer.parseInt(args.getArgument("id")))));
-
+                            .dataFetcher("customers", env -> customerService.getCustomers())
+                            .dataFetcher("customerById", env -> customerService.getCustomerById(getId(env))));
         };
     }
 
-    Flux<StockUpdate> updatesFor(String stockName) {
-        return Flux
-                .fromStream(Stream.generate(() -> new StockUpdate((float) (1000 * Math.random()), stockName)))
-                .delayElements(Duration.ofSeconds(1))
-                .take(10);
-    }
-
-
-    @SneakyThrows
-    private String json(ObjectMapper objectMapper, Object o) {
-        return objectMapper.writeValueAsString(o);
+    private int getId(DataFetchingEnvironment e) {
+        return Integer.parseInt(e.getArgument("id"));
     }
 
 }
@@ -74,9 +53,9 @@ public class GraphqlBasicsApplication {
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class StockUpdate {
-    private Float price;
-    private String name;
+class CustomerUpdate {
+    private Customer customer;
+    private String event;
 }
 
 @Data
@@ -89,24 +68,36 @@ class CustomerProfile {
 @Service
 class CustomerService {
 
-    private final List<Customer> customers;
+    private final Map<Integer, Customer> db = new ConcurrentHashMap<>();
 
     CustomerService() {
         var id = new AtomicInteger();
-        this.customers = List
+        var customers = List
                 .of("Dr. Syer", "Stéphane", "Yuxin", "Olga", "Madhura", "Violetta", "Mark")
                 .stream()
                 .map(name -> new Customer(id.incrementAndGet(), name))
                 .collect(Collectors.toList());
+        customers.forEach(c -> this.db.put(c.getId(), c));
+    }
+
+    Flux<CustomerUpdate> getCustomerUpdatesStreamFor(Integer id) {
+        var customer = this.db.get(id);
+        return Flux
+                .fromStream(Stream.generate(() -> new CustomerUpdate(customer, Math.random() >= .5 ? "CREATED" : "DELETED")))
+                .delayElements(Duration.ofSeconds(1))
+                .take(10);
     }
 
     Mono<Customer> getCustomerById(Integer id) {
-        Optional<Customer> first = this.customers.stream().filter(c -> c.getId().equals(id)).findFirst();
-        return first.map(Mono::just).orElseGet(Mono::empty);
+        return Mono.just(this.db.get(id));
     }
 
     Flux<Customer> getCustomers() {
-        return Flux.fromIterable(this.customers);
+        return Flux.fromIterable(this.db.values());
+    }
+
+    Mono<CustomerProfile> getCustomerProfileFor(Integer id) {
+        return Mono.just(new CustomerProfile(this.db.get(id).getId()));
     }
 }
 

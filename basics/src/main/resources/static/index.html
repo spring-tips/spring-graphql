@@ -23,23 +23,26 @@
         );
 
 
-        // subscription
-        client.subscribe(
-            {query: 'subscription { customers }',},
-            {
-                next: (next) => console.log('next from subscription', next['data']['customers']),
-                error: (err) => console.error('there is an error', err),
-                complete: () => console.log('subscription is complete.'),
-            },
-        );
+
 
 
 
         // stocks
         client.subscribe(
-            {query: 'subscription { stockUpdates( name : \"VMW\") { price, name }}',},
+            {query:
+                     `
+                    subscription {
+                        customerUpdates (id:2) {
+                            event,
+                            customer {
+                                id
+                            }
+                        }
+                    }
+                     `
+            },
             {
-                next: (next) => console.log('next from subscription', next['data']['stockUpdates']),
+                next: (next) => console.log('next from subscription', next['data']['customerUpdates']),
                 error: (err) => console.error('there is an error', err),
                 complete: () => console.log('subscription is complete.'),
             },
