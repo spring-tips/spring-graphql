@@ -1,5 +1,6 @@
 package com.example.graphqlbasics;
 
+import graphql.schema.DataFetchingEnvironment;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,18 +33,19 @@ public class GraphqlBasicsApplication {
 
             builder
                     .type("Customer", wiring -> wiring
-                            .dataFetcher("profile",
-                                    env -> customerService.getCustomerProfileFor(Integer.parseInt(env.getArgument("id")))));
+                            .dataFetcher("profile", env -> customerService.getCustomerProfileFor(getId(env))));
             builder
                     .type("Subscription", wiring -> wiring
-                            .dataFetcher("customerUpdates", env -> customerService.getCustomerUpdatesStreamFor(
-                                    Integer.parseInt(env.getArgument("id")))));
+                            .dataFetcher("customerUpdates", env -> customerService.getCustomerUpdatesStreamFor(getId(env))));
             builder
                     .type("Query", wiring -> wiring
-                            .dataFetcher("customers", args -> customerService.getCustomers())
-                            .dataFetcher("customerById",
-                                    args -> customerService.getCustomerById(Integer.parseInt(args.getArgument("id")))));
+                            .dataFetcher("customers", env -> customerService.getCustomers())
+                            .dataFetcher("customerById", env -> customerService.getCustomerById(getId(env))));
         };
+    }
+
+    private int getId(DataFetchingEnvironment e) {
+        return Integer.parseInt(e.getArgument("id"));
     }
 
 }
