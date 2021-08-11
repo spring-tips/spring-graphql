@@ -37,7 +37,6 @@ public class GraphqlBasicsApplication {
                                 Thread.sleep(1000);
                                 System.out.println("running on " + Thread.currentThread().getName());
                                 return new CustomerProfile((int) (Math.random() * 1000));
-
                             }));
 
             builder
