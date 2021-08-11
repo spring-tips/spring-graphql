@@ -18,10 +18,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Josh Long
  */
+//@ResourceHint ()
 @SpringBootApplication
 public class GraphqlBasicsApplication {
 
@@ -34,7 +36,17 @@ public class GraphqlBasicsApplication {
         return builder -> {
 
             builder
+                    .type("Customer", w -> w
+                            .dataFetcher("profile", e -> {
+                                Thread.sleep(1000);
+                                System.out.println("running on " + Thread.currentThread().getName());
+                                return new CustomerProfile((int) (Math.random() * 1000));
+
+                            }));
+
+            builder
                     .type("Subscription", wiring -> wiring
+                            .dataFetcher("stockUpdates", env -> updatesFor(env.getArgument("name")))
                             .dataFetcher("customers", env ->
                                     customerService.getCustomers()
                                             .delayElements(Duration.ofSeconds(1))
@@ -42,10 +54,18 @@ public class GraphqlBasicsApplication {
 
             builder
                     .type("Query", wiring -> wiring
+                            .dataFetcher("customers", args -> customerService.getCustomers())
                             .dataFetcher("customerById",
-                                    env -> customerService.getCustomerById(Integer.parseInt(env.getArgument("id")))));
+                                    args -> customerService.getCustomerById(Integer.parseInt(args.getArgument("id")))));
 
         };
+    }
+
+    Flux<StockUpdate> updatesFor(String stockName) {
+        return Flux
+                .fromStream(Stream.generate(() -> new StockUpdate((float) (1000 * Math.random()), stockName)))
+                .delayElements(Duration.ofSeconds(1))
+                .take(10);
     }
 
 
@@ -54,6 +74,21 @@ public class GraphqlBasicsApplication {
         return objectMapper.writeValueAsString(o);
     }
 
+}
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+class StockUpdate {
+    private Float price;
+    private String name;
+}
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+class CustomerProfile {
+    private Integer id;
 }
 
 @Service
