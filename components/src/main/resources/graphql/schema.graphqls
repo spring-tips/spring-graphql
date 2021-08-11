@@ -8,9 +8,17 @@ type Subscription {
     customerUpdates(id:ID): CustomerUpdate
 }
 
+type Mutation {
+ addCustomer ( input :CustomerInput): Customer
+}
+
 type CustomerUpdate {
  customer: Customer!
  event: String
+}
+
+input CustomerInput {
+ name : String!
 }
 
 type Customer {
