@@ -20,10 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * @author Josh Long
- */
-//@ResourceHint ()
 @SpringBootApplication
 public class GraphqlBasicsApplication {
 
