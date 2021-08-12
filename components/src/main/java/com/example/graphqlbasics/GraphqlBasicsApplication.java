@@ -134,7 +134,7 @@ class CustomerService {
     private Customer doAddCustomer(String name) {
         var id = this.id.incrementAndGet();
         this.db.put(id, new Customer(id, name));
-        return (this.db.get(id));
+        return this.db.get(id);
     }
 }
 
