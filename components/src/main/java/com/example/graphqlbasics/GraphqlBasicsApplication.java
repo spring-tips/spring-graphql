@@ -25,29 +25,6 @@ public class GraphqlBasicsApplication {
         SpringApplication.run(GraphqlBasicsApplication.class, args);
     }
 
-/*
-    @Bean
-    RuntimeWiringConfigurer runtimeWiringConfigurer(CustomerService customerService) {
-        return builder -> {
-
-            builder
-                    .type("Customer", wiring -> wiring
-                            .dataFetcher("profile", env -> customerService.getCustomerProfileFor(getId(env))));
-            builder
-                    .type("Subscription", wiring -> wiring
-                            .dataFetcher("customerUpdates", env -> customerService.getCustomerUpdatesStreamFor(getId(env))));
-            builder
-                    .type("Query", wiring -> wiring
-                            .dataFetcher("customers", env -> customerService.getCustomers())
-                            .dataFetcher("customerById", env -> customerService.getCustomerById(getId(env))));
-        };
-    }
-
-    private int getId(DataFetchingEnvironment e) {
-        return Integer.parseInt(e.getArgument("id"));
-    }
-*/
-
 }
 
 @GraphQlController
@@ -126,17 +103,12 @@ class CustomerService {
     private final AtomicInteger id = new AtomicInteger();
 
     CustomerService() {
-        List.of("Dr. Syer", "Yuxin", "Stéphane", "Olga", "Madhura", "Violetta", "Mark").forEach(this::doAddCustomer);
+        List.of("Dr. Syer", "Yuxin", "Stéphane", "Olga", "Madhura", "Violetta", "Mark")
+                .forEach(this::doAddCustomer);
     }
 
     Mono<Customer> addCustomer(String name) {
         return Mono.just(doAddCustomer(name));
-    }
-
-    private Customer doAddCustomer(String name) {
-        var id = this.id.incrementAndGet();
-        this.db.put(id, new Customer(id, name));
-        return (this.db.get(id));
     }
 
     Flux<CustomerUpdate> getCustomerUpdatesStreamFor(Integer id) {
@@ -157,6 +129,12 @@ class CustomerService {
 
     Mono<CustomerProfile> getCustomerProfileFor(Integer id) {
         return Mono.just(new CustomerProfile(this.db.get(id).getId()));
+    }
+
+    private Customer doAddCustomer(String name) {
+        var id = this.id.incrementAndGet();
+        this.db.put(id, new Customer(id, name));
+        return (this.db.get(id));
     }
 }
 
