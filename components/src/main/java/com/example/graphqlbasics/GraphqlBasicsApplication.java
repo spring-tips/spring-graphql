@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.graphql.data.method.annotation.*;
+import org.springframework.nativex.hint.NativeHint;
+import org.springframework.nativex.hint.ResourceHint;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -18,6 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+
+@ResourceHint(patterns = {
+//        "^graphql/schema.graphqls",
+        "^graphql/.*"
+//    ".*/graphql.*graphqls$",
+//    "graphql/.*.graphqls$"
+})
 @SpringBootApplication
 public class GraphqlBasicsApplication {
 
@@ -137,6 +146,7 @@ class CustomerService {
         return this.db.get(id);
     }
 }
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
