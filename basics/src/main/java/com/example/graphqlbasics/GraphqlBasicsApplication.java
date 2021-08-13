@@ -72,9 +72,7 @@ class CustomerService {
 
     CustomerService() {
         var id = new AtomicInteger();
-        var customers = List
-                .of("Dr. Syer", "Stéphane", "Yuxin", "Olga", "Madhura", "Violetta", "Mark")
-                .stream()
+        var customers = Stream.of("Dr. Syer", "Stéphane", "Yuxin", "Olga", "Madhura", "Violetta", "Mark")
                 .map(name -> new Customer(id.incrementAndGet(), name))
                 .collect(Collectors.toList());
         customers.forEach(c -> this.db.put(c.getId(), c));
