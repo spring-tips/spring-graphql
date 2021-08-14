@@ -1,0 +1,21 @@
+type Query {
+    customers : [Customer]
+}
+
+type Subscription {
+    customerNotifications: CustomerAddEvent
+}
+
+type CustomerAddEvent {
+    source: Customer
+}
+
+type Mutation {
+    addCustomer(name: String) : Customer
+}
+
+type Customer {
+    id: ID
+    name: String
+}
+

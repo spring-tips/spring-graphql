@@ -8,8 +8,8 @@
 	<name>root</name>
 	<packaging>pom</packaging>
 	 <modules>
-	 	<module>orders</module>
-	 	<module>customers</module>
-	 	<module>edge</module>
+	 	<module>gateway</module>
+	 	<!-- <module>customers</module> -->
+	 	<!-- <module>edge</module> -->
 	 </modules>
 </project>

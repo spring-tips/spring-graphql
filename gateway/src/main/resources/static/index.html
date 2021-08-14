@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>GraphQL over WebSocket</title>
+    <script type="text/javascript" src="https://unpkg.com/graphql-ws/umd/graphql-ws.js"></script>
+
+    <script>
+
+        class Graphql {
+
+            constructor(url) {
+                this.client = graphqlWs.createClient({url: url})
+            }
+
+            subscribe(q, callback) {
+                this.client.subscribe(
+                    {query: q},
+                    {
+                        next: callback,
+                        error: (err) => console.error('there is an error', err),
+                        complete: () => console.log('subscription is complete.'),
+                    },
+                );
+
+            }
+
+            async query(queryString) {
+                return await new Promise((resolve, reject) => {
+                    let result;
+                    this.client.subscribe(
+                        {
+                            query: queryString,
+                        },
+                        {
+                            next: (data) => (result = data),
+                            error: reject,
+                            complete: () => resolve(result),
+                        },
+                    );
+                })
+
+            }
+
+
+        }
+
+        class Crm {
+
+            constructor() {
+                this.client = new Graphql('ws://localhost:8181/graphql')
+            }
+
+            async readCustomers() {
+                const q = ` { customers { id, name } } `
+                return (await this.client.query(q)) ['data']['customers']
+            }
+
+            async addCustomer(name) {
+                const q = `
+                    mutation {
+                      addCustomer(name : "${name}") { id, name }
+                    }
+                `
+                return (await this.client.query(q))['data']['addCustomer']
+            }
+
+            subscribeToCustomerNotifications(callback) {
+                const q = `
+                 subscription { customerNotifications { source { id, name } }}
+                `
+                this.client.subscribe(q, (next) => {
+                    const result = next ['data']['customerNotifications']['source']
+                    callback(result)
+                })
+            }
+        }
+
+        window.addEventListener('load', async () => {
+
+            function renderNewCustomer(customer) {
+                const li = document.createElement('li')
+                li.innerText = 'ID#' + customer.id + ' ' + customer.name
+                document.getElementById('customers').appendChild(li)
+            }
+
+            const crm = new Crm();
+            crm.subscribeToCustomerNotifications(renderNewCustomer);
+
+            document
+                .getElementById('submit')
+                .addEventListener('click', (event) => {
+                    // async js handlers return a Promise<Boolean>, not a Boolean, and so the form won't be prevented
+                    // so, to get around that, the async function is in the setTimeout callback instead
+
+                    setTimeout(async () => {
+                        await crm.addCustomer(document.getElementById('name').value)
+                    }, 1)
+
+                    event.preventDefault()
+                });
+
+            (await crm.readCustomers()).forEach((customer) => renderNewCustomer(customer))
+
+        });
+    </script>
+</head>
+<body>
+<form>
+    <input id="name" type="text"/>
+    <button id="submit" type="submit">Add</button>
+</form>
+<ul id="customers">
+</ul>
+</body>
+</html>
