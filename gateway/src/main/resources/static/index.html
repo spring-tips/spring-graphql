@@ -7,6 +7,7 @@
 
     <script>
 
+        // just copy and paste this
         class Graphql {
 
             constructor(url) {
@@ -100,7 +101,7 @@
                     event.preventDefault()
                 });
 
-            (await crm.readCustomers()).forEach((customer) => renderNewCustomer(customer))
+            (await crm.readCustomers()).forEach(renderNewCustomer)
 
         });
     </script>
