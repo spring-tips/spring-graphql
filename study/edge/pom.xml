@@ -18,6 +18,12 @@
         <kotlin.version>1.5.21</kotlin.version>
     </properties>
     <dependencies>
+     <!--   <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <version>${netty.version}</version>
+            <classifier>osx-x86_64</classifier>
+        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>

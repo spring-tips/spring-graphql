@@ -1,0 +1,24 @@
+type Subscription {
+    customerAdditionEvents : CustomerAdditionEvent
+}
+
+type CustomerAdditionEvent {
+    customer: Customer
+}
+
+type Query {
+    customers: [Customer]
+}
+
+type Mutation {
+    addCustomer ( customerAddition: CustomerAddition ) : Customer
+}
+
+input CustomerAddition {
+    name :String
+}
+
+type Customer {
+    name: String
+    id: ID
+}
