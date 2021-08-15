@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.graphql.data.method.annotation.*;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -154,3 +155,6 @@ class CrmClient {
     }
 }
 
+
+
+//interface CustomerRepository extends ReactiveCrudRepository<Customer , Integer> {}
