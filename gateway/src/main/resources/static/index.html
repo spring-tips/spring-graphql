@@ -53,7 +53,9 @@
             }
 
             async readCustomers() {
-                const q = ` { customers { id, name } } `
+                const q = `
+                 { customers { id, name } }
+                `
                 return (await this.client.query(q)) ['data']['customers']
             }
 
@@ -86,14 +88,13 @@
             const crm = new Crm()
             await crm.subscribeToCustomerUpdates(2, (event) => {
                 console.log(event.customer.id + ' = '
-                    + event.customer.name + ' ' + event.event  + ' @ ' + new Date ()  )
+                    + event.customer.name + ' ' + event.event + ' @ ' + new Date())
             })
             await crm.addCustomer('Bob')
             const customers = await crm.readCustomers()
             console.log('customer: ', customers)
+        })
 
-
-        });
     </script>
 </head>
 <body>
