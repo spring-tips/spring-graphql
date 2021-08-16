@@ -1,10 +1,8 @@
 package graphql.gateway;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.annotation.Id;
@@ -30,11 +28,8 @@ class CustomerGraphqlController {
 
     private final CustomerRepository repository;
 
-    private final ObjectMapper objectMapper;
-
-    CustomerGraphqlController(ObjectMapper om, CustomerRepository repository) {
+    CustomerGraphqlController(CustomerRepository repository) {
         this.repository = repository;
-        this.objectMapper = om;
     }
 
     @QueryMapping
@@ -47,13 +42,8 @@ class CustomerGraphqlController {
         return this.repository.save(new Customer(null, name));
     }
 
-    @SneakyThrows
-    private static String from(Object o, ObjectMapper om) {
-        return om.writeValueAsString(o);
-    }
-
     @SubscriptionMapping
-    Flux<CustomerEvent> customerEvents(@Argument("id") Integer customerId ) {
+    Flux<CustomerEvent> customerEvents(@Argument("id") Integer customerId) {
         return this.repository
                 .findById(customerId)
                 .flatMapMany(customer -> {
@@ -61,7 +51,6 @@ class CustomerGraphqlController {
                             .generate(() -> new CustomerEvent(customer, Math.random() > .5 ? CustomerEventType.DELETED : CustomerEventType.MODIFIED));
                     return Flux.fromStream(stream);
                 })
-//                .map(ce -> from(ce, om))
                 .delayElements(Duration.ofSeconds(1))
                 .take(10);
 
