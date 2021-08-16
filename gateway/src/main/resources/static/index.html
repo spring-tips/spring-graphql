@@ -49,7 +49,7 @@
         class Crm {
 
             constructor() {
-                this.client = new Graphql('ws://localhost:8181/graphql')
+                this.client = new Graphql('ws://localhost:8080/graphql')
             }
 
             async readCustomers() {
@@ -66,52 +66,36 @@
                 return (await this.client.query(q))['data']['addCustomer']
             }
 
-            subscribeToCustomerNotifications(callback) {
+            subscribeToCustomerUpdates(customerId, callback) {
                 const q = `
-                 subscription { customerNotifications { source { id, name } }}
+                subscription {
+                    customerEvents( id : ${customerId} ) {
+                        customer { id, name }
+                        event
+                    }
+                }
                 `
                 this.client.subscribe(q, (next) => {
-                    const result = next ['data']['customerNotifications']['source']
+                    const result = next ['data']['customerEvents']
                     callback(result)
-                })
+                });
             }
         }
 
         window.addEventListener('load', async () => {
+            const crm = new Crm()
+            await crm.subscribeToCustomerUpdates(2, (event) => {
+                console.log(event.customer.id + ' = '
+                    + event.customer.name + ' ' + event.event  + ' @ ' + new Date ()  )
+            })
+            await crm.addCustomer('Bob')
+            const customers = await crm.readCustomers()
+            console.log('customer: ', customers)
 
-            function renderNewCustomer(customer) {
-                const li = document.createElement('li')
-                li.innerText = 'ID#' + customer.id + ' ' + customer.name
-                document.getElementById('customers').appendChild(li)
-            }
-
-            const crm = new Crm();
-            crm.subscribeToCustomerNotifications(renderNewCustomer);
-
-            document
-                .getElementById('submit')
-                .addEventListener('click', (event) => {
-                    // async js handlers return a Promise<Boolean>, not a Boolean, and so the form won't be prevented
-                    // so, to get around that, the async function is in the setTimeout callback instead
-
-                    setTimeout(async () => {
-                        await crm.addCustomer(document.getElementById('name').value)
-                    }, 1)
-
-                    event.preventDefault()
-                });
-
-            (await crm.readCustomers()).forEach(renderNewCustomer)
 
         });
     </script>
 </head>
 <body>
-<form>
-    <input id="name" type="text"/>
-    <button id="submit" type="submit">Add</button>
-</form>
-<ul id="customers">
-</ul>
 </body>
 </html>

@@ -3,11 +3,13 @@ type Query {
 }
 
 type Subscription {
-    customerNotifications: CustomerAddEvent
+    customerEvents(id: ID): CustomerEvent
 }
 
-type CustomerAddEvent {
-    source: Customer
+type CustomerEvent {
+    customer: Customer
+    event :String
+
 }
 
 type Mutation {
