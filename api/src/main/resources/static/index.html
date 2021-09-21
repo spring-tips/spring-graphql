@@ -71,7 +71,7 @@
             subscribeToCustomerUpdates(customerId, callback) {
                 const q = `
                 subscription {
-                    customerEvents( id : ${customerId} ) {
+                    customerEvents( customerId : ${customerId} ) {
                         customer { id, name }
                         event
                     }
